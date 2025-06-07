@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('admin_actions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('admin_id')->constrained('admins')->onDelete('cascade');
+            $table->enum('action_type', ['delete_user', 'delete_company', 'update_user', 'update_company'])->default('delete_user');
+            $table->dateTime('time');
+            $table->unsignedBigInteger('target_id');
+            $table->enum('target_type', ['user', 'company'])->default('user');
             $table->timestamps();
         });
     }

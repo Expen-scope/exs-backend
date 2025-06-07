@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('events', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('company_id')->constrained('companies')->onDelete('cascade');
+            $table->string('name');
+            $table->string('descrption');
+            $table->time('scheduled_date');
+            $table->enum('status', ['upcoming', 'in_progress', 'completed', 'cancelled', 'postponed']);
             $table->timestamps();
         });
     }

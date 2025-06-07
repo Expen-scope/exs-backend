@@ -11,8 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('Transactions', function (Blueprint $table) {
+        Schema::create('transactions', function (Blueprint $table) {
             $table->id();
+            $table->enum('type_transaction', ['income', 'expense']);
+            $table->string('category');
+            $table->double('price');
+            $table->foreignId('company_id')->nullable()->constrained('companies')->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->string('description');
+            $table->string('currency', 50);
+            $table->string('source');
+            $table->enum('repeat', ['daily', 'weekly', 'monthly'])->nullable()->default('weekly');
+            $table->date('date');
             $table->timestamps();
         });
     }
@@ -22,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('Transactions');
+        Schema::dropIfExists('transactions');
     }
 };
