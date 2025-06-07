@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
@@ -64,3 +65,42 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+=======
+# Exs Backend API ⚙️
+
+This is the backend API for the **Exs** financial management platform. It is built with **Laravel** and serves the mobile app (Flutter), web dashboard, and AI assistant by providing secure authentication, data storage, financial analytics, goal tracking, and intelligent recommendations.
+
+## ✅ Features
+
+- User registration and login
+- Income and expense management
+- Financial goals with time-based reminders
+- Monthly financial analysis
+- Notifications system
+- Rule-based recommendations for companies
+- API support for the AI assistant
+- Supports Arabic and English
+
+## 🛠 Requirements
+
+- PHP >= 8.1
+- Composer
+- Laravel 10+
+- MySQL or SQLite database
+
+## 🚀 Installation & Setup
+
+```bash
+git clone https://github.com/exs-finance/exs-backend.git
+cd exs-backend
+
+composer install
+
+cp .env.example .env
+php artisan key:generate
+
+# Set up your database connection in the .env file
+
+php artisan migrate
+php artisan serve
+>>>>>>> 3809debec7b723283fc657a0f7d523afa788f0d0
