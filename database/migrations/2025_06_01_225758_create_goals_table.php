@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->double('target_amount');
             $table->double('saved_amount');
-            $table->time('time');
+            $table->dateTime('time');
             $table->foreignId('company_id')->nullable()->constrained('companies')->onDelete('set null');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
