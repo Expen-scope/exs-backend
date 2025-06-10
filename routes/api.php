@@ -66,3 +66,11 @@ Route::prefix('admin')->group(function () {
         Route::post('/company', [AdminAuthController::class, 'createCompany']);
     });
 });
+
+Route::middleware('auth:user')->group(function () {
+    Route::apiResource('goals', GoalController::class);
+});
+
+Route::middleware('auth:company')->group(function () {
+    Route::apiResource('goals', GoalController::class);
+});
