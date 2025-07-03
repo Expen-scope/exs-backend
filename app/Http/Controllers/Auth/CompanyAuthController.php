@@ -85,4 +85,27 @@ class CompanyAuthController extends Controller
 
         return response()->json(['message' => 'Password updated successfully']);
     }
+    public function financialData(Request $request)
+    {
+        $user = $request->user()->load('transactions', 'goals');
+
+        $transactions = $user->transactions;
+
+        $expenses = $transactions->where('type_transaction', 'expense')->sum('price');
+        $income = $transactions->where('type_transaction', 'income')->sum('price');
+
+        $goals = $user->goals->map(function ($goal) {
+            return [
+                'name' => $goal->name,
+                'amount' => $goal->amount,
+                'progress' => $goal->progress,
+            ];
+        });
+
+        return response()->json([
+            'expenses' => $expenses,
+            'income' => $income,
+            'goals' => $goals,
+        ]);
+    }
 }
