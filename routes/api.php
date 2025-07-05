@@ -49,7 +49,7 @@ Route::prefix('user')->group(function () {
             'destroy' => 'user.reminders.destroy',
         ]);
 
-        Route::get('/financialData', [UserAuthController::class, 'financialData'])->name('user.financialData');
+        Route::get('/financialuser', [UserAuthController::class, 'financialuser'])->name('user.financialuser');
     });
 });
 
@@ -61,6 +61,7 @@ Route::prefix('company')->group(function () {
         Route::get('/profile', [CompanyAuthController::class, 'profile']);
         Route::post('/logout', [CompanyAuthController::class, 'logout']);
         Route::post('/change-password', [CompanyAuthController::class, 'changePassword']);
+        Route::get('/financialcompany', [CompanyAuthController::class, 'financialcompany']);
 
         Route::apiResource('goals', GoalController::class)->names([
             'index'   => 'company.goals.index',
@@ -91,8 +92,6 @@ Route::prefix('company')->group(function () {
             'update'  => 'company.events.update',
             'destroy' => 'company.events.destroy',
         ]);
-
-        Route::get('/financial-data', [UserAuthController::class, 'financialData'])->name('company.financialData');
     });
 });
 

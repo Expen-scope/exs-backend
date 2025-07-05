@@ -85,26 +85,43 @@ class UserAuthController extends Controller
 
         return response()->json(['message' => 'Password updated successfully']);
     }
-    public function financialData(Request $request)
+    public function financialuser(Request $request)
     {
+
+
         $user = $request->user()->load('transactions', 'goals');
 
         $transactions = $user->transactions;
 
-        $expenses = $transactions->where('type_transaction', 'expense')->sum('price');
-        $income = $transactions->where('type_transaction', 'income')->sum('price');
+        // $expenses = $transactions->where('type_transaction', 'expense')->sum('price');
+        // $income = $transactions->where('type_transaction', 'income')->sum('price');
+
+        $transactionsDetailed = $transactions->map(function ($transaction) {
+            return [
+                'id' => $transaction->id,
+                'source' => $transaction->source,
+                'type' => $transaction->type_transaction,
+                'price' => $transaction->price,
+                'category' => $transaction->category,
+                'date' => $transaction->created_at->toDateTimeString(),
+            ];
+        });
+
 
         $goals = $user->goals->map(function ($goal) {
             return [
+                'id' => $goal->id,
                 'name' => $goal->name,
                 'target_amount' => $goal->target_amount,
                 'saved_amount' => $goal->saved_amount,
+                'date' => $goal->created_at->toDateTimeString(),
             ];
         });
 
         return response()->json([
-            'expenses' => $expenses,
-            'income' => $income,
+
+            'type' => 'user',
+            'transactions' => $transactionsDetailed,
             'goals' => $goals,
         ]);
     }

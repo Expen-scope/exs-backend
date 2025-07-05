@@ -85,26 +85,35 @@ class CompanyAuthController extends Controller
 
         return response()->json(['message' => 'Password updated successfully']);
     }
-    public function financialData(Request $request)
+    public function financialcompany(Request $request)
     {
-        $user = $request->user()->load('transactions', 'goals');
+        $company = auth('company')->user()->load('transactions', 'goals');
 
-        $transactions = $user->transactions;
 
+        $transactions = $company->transactions;
         $expenses = $transactions->where('type_transaction', 'expense')->sum('price');
         $income = $transactions->where('type_transaction', 'income')->sum('price');
-
-        $goals = $user->goals->map(function ($goal) {
+        $transactionsDetailed = $transactions->map(function ($transaction) {
+            return [
+                'id' => $transaction->id,
+                'source' => $transaction->source,
+                'type' => $transaction->type_transaction,
+                'price' => $transaction->price,
+                'category' => $transaction->category,
+                'date' => $transaction->created_at->toDateTimeString(),
+            ];
+        });
+        $goals = $company->goals->map(function ($goal) {
             return [
                 'name' => $goal->name,
-                'amount' => $goal->amount,
-                'progress' => $goal->progress,
+                'amount' => $goal->target_amount,
+                'progress' => $goal->saved_amount,
             ];
         });
 
         return response()->json([
-            'expenses' => $expenses,
-            'income' => $income,
+            'type' => 'company',
+            'transactions' => $transactionsDetailed,
             'goals' => $goals,
         ]);
     }
