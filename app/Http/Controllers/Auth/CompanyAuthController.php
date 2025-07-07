@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\ChatSession;
 use Illuminate\Http\Request;
 use App\Models\Company;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Str;
 
 class CompanyAuthController extends Controller
 {
@@ -38,19 +40,49 @@ class CompanyAuthController extends Controller
         ], 201);
     }
 
+    // public function login(Request $request)
+    // {
+    //     $credentials = $request->only('email', 'password');
+
+    //     if (!$token = auth('company')->attempt($credentials)) {
+    //         return response()->json(['error' => 'Invalid credentials'], 401);
+    //     }
+
+    //     return response()->json([
+    //         'company' => auth('company')->user(),
+    //         'token'   => $token,
+    //     ]);
+    // }
+
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
 
-        if (!$token = auth('company')->attempt($credentials)) {
+        if (!$jwtToken = auth('company')->attempt($credentials)) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
+        $company = auth('company')->user();
+
+        ChatSession::where('sessionable_id', $company->id)
+            ->where('sessionable_type', get_class($company))
+            ->delete();
+
+        $n8nSession = ChatSession::create([
+            'sessionable_id'   => $company->id,
+            'sessionable_type' => get_class($company),
+            'token'            => Str::random(40),
+            'expires_at'       => now()->addDays(7),
+        ]);
+
         return response()->json([
-            'company' => auth('company')->user(),
-            'token'   => $token,
+            'message'           => 'Login successful',
+            'company'           => $company,
+            'access_token'      => $jwtToken,
+            'n8n_session_token' => $n8nSession->token
         ]);
     }
+
 
     public function logout()
     {
@@ -115,6 +147,13 @@ class CompanyAuthController extends Controller
             'type' => 'company',
             'transactions' => $transactionsDetailed,
             'goals' => $goals,
+        ]);
+    }
+    public function getDetails(Request $request, $id)
+    {
+        $company = Company::findOrFail($id);
+        return response()->json([
+            'ai_api_key' => $company->ai_api_key
         ]);
     }
 }

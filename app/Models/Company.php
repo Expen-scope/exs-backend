@@ -19,12 +19,14 @@ class Company extends Authenticatable implements JWTSubject
     protected $hidden = [
         'password',
         'remember_token',
+        'token'
     ];
 
 
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'ai_api_key'=>'hashed'
     ];
     public function getJWTIdentifier()
     {
@@ -48,4 +50,8 @@ class Company extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Transaction::class);
     }
+    public function chatHistories()
+{
+    return $this->hasMany(CompanyChatHistory::class);
+}
 }
