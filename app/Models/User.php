@@ -13,7 +13,7 @@ class User extends Authenticatable implements JWTSubject
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = ['name', 'email', 'password'];
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token','token'];
 
     public function getJWTIdentifier()
     {
@@ -30,6 +30,8 @@ class User extends Authenticatable implements JWTSubject
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+                'ai_api_key'=>'hashed'
+
     ];
     public function goals()
     {

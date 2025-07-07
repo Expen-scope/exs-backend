@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('password');
             $table->string('email')->unique();
+            $table->string('ai_api_key')->nullable();
             $table->rememberToken();
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamps();

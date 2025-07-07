@@ -9,6 +9,10 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\AdminActionController;
+use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\ChatHistoryController;
+use App\Http\Controllers\Api\CompanyChatController;
+
 
 Route::prefix('user')->group(function () {
     Route::post('/register', [UserAuthController::class, 'register']);
@@ -112,3 +116,18 @@ Route::prefix('admin')->group(function () {
         Route::post('/company', [AdminAuthController::class, 'createCompany'])->name('admin.company.create');
     });
 });
+Route::get('/users/{id}/details', [UserAuthController::class, 'getDetails']);
+Route::get('/companies/{id}/details', [CompanyAuthController::class, 'getDetails']);
+
+Route::middleware('jwt.auth')->group(function() {
+    Route::post('/chat/start-session', [ChatController::class, 'startSession']);
+});
+
+Route::get('/chat/context', [ChatController::class, 'getContext']);
+Route::post('/chat-history', [ChatHistoryController::class, 'store']);
+
+
+Route::get('/user/{id}/financial-context', [UserAuthController::class, 'financialuserById']);
+Route::get('/company/{id}/financial-context', [CompanyAuthController::class, 'financialcompanyById']);
+
+Route::post('/company-chat-history', [CompanyChatController::class, 'store']);

@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\ChatSession;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Str;
 
 class UserAuthController extends Controller
 {
@@ -38,17 +40,47 @@ class UserAuthController extends Controller
         ], 201);
     }
 
+    // public function login(Request $request)
+    // {
+    //     $credentials = $request->only('email', 'password');
+
+    //     if (!$token = auth('user')->attempt($credentials)) {
+    //         return response()->json(['error' => 'Invalid credentials'], 401);
+    //     }
+
+    //     return response()->json([
+    //         'user'  => auth('user')->user(),
+    //         'token' => $token,
+    //     ]);
+    // }
+
+
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
 
-        if (!$token = auth('user')->attempt($credentials)) {
+        if (!$jwtToken = auth('user')->attempt($credentials)) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
+        $user = auth('user')->user();
+
+        ChatSession::where('sessionable_id', $user->id)
+            ->where('sessionable_type', get_class($user))
+            ->delete();
+
+        $n8nSession = ChatSession::create([
+            'sessionable_id'   => $user->id,
+            'sessionable_type' => get_class($user),
+            'token'            => Str::random(40),
+            'expires_at'       => now()->addDays(7),
+        ]);
+
         return response()->json([
-            'user'  => auth('user')->user(),
-            'token' => $token,
+            'message'           => 'Login successful',
+            'user'           => $user,
+            'access_token'      => $jwtToken,
+            'n8n_session_token' => $n8nSession->token
         ]);
     }
 
@@ -123,6 +155,14 @@ class UserAuthController extends Controller
             'type' => 'user',
             'transactions' => $transactionsDetailed,
             'goals' => $goals,
+        ]);
+    }
+
+    public function getDetails(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        return response()->json([
+            'ai_api_key' => $user->ai_api_key
         ]);
     }
 }
