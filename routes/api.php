@@ -12,6 +12,8 @@ use App\Http\Controllers\AdminActionController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\ChatHistoryController;
 use App\Http\Controllers\Api\CompanyChatController;
+use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\EmployeeController;
 
 
 Route::prefix('user')->group(function () {
@@ -119,7 +121,7 @@ Route::prefix('admin')->group(function () {
 Route::get('/users/{id}/details', [UserAuthController::class, 'getDetails']);
 Route::get('/companies/{id}/details', [CompanyAuthController::class, 'getDetails']);
 
-Route::middleware('jwt.auth')->group(function() {
+Route::middleware('jwt.auth')->group(function () {
     Route::post('/chat/start-session', [ChatController::class, 'startSession']);
 });
 
@@ -131,3 +133,7 @@ Route::get('/user/{id}/financial-context', [UserAuthController::class, 'financia
 Route::get('/company/{id}/financial-context', [CompanyAuthController::class, 'financialcompanyById']);
 
 Route::post('/company-chat-history', [CompanyChatController::class, 'store']);
+Route::middleware('auth:company')->group(function () {
+    Route::apiResource('warehouses', WarehouseController::class);
+    Route::apiResource('employees', EmployeeController::class);
+});
