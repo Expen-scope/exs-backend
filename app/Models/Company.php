@@ -54,4 +54,13 @@ class Company extends Authenticatable implements JWTSubject
 {
     return $this->hasMany(CompanyChatHistory::class);
 }
+public function warehouses()
+{
+    return $this->hasMany(Warehouse::class);
+}
+
+public function employees()
+{
+    return $this->hasMany(Employee::class);
+}
 }
