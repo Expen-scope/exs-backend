@@ -11,13 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-  Schema::create('chat_sessions', function (Blueprint $table) {
-        $table->id();
-        $table->morphs('sessionable');
-        $table->string('token')->unique();
-        $table->timestamp('expires_at');
-        $table->timestamps();
-    });
+        Schema::table('transactions', function (Blueprint $table) {
+            $table->string('category')->nullable()->change();
+        });
     }
 
     /**
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('chat_sessions');
+        Schema::table('transactions', function (Blueprint $table) {
+            //
+        });
     }
 };

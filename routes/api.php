@@ -137,3 +137,6 @@ Route::middleware('auth:company')->group(function () {
     Route::apiResource('warehouses', WarehouseController::class);
     Route::apiResource('employees', EmployeeController::class);
 });
+Route::middleware('auth:user,company')->group(function () {
+    Route::get('/categories', [App\Http\Controllers\TransactionController::class, 'getCategories']);
+});

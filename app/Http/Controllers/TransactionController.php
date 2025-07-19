@@ -2,14 +2,38 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
 {
-    protected $incomeCategories = ['راتب', 'أرباح', 'هدية', 'استثمار'];
-    protected $expenseCategories = ['فاتورة كهرباء', 'فاتورة ماء', 'إيجار', 'وقود', 'طعام', 'انترنت'];
+    protected $incomeCategories = [
+        'Salary',
+        'Business Income',
+        'Freelance/Side Hustles',
+        'Investments',
+        'Rental Income',
+        'Dividends',
+        'Interest Income',
+        'Gifts',
+        'Refunds/Reimbursements',
+        'Bonuses'
+    ];
+
+    protected $expenseCategories = [
+        'Housing',
+        'Utilities',
+        'Transportation',
+        'Groceries',
+        'Dining Out',
+        'Healthcare',
+        'Insurance',
+        'Debt Payments',
+        'Entertainment',
+        'Personal Care'
+    ];
 
     public function index()
     {
@@ -26,34 +50,46 @@ class TransactionController extends Controller
 
         return response()->json(['error' => 'Unauthorized'], 401);
     }
-
     public function store(Request $request)
     {
         $request->validate([
             'type_transaction' => 'required|in:income,expense',
-            'source'           => 'required|string',
-            'category'         => 'required|string',
-            'price'            => 'required|numeric',
-            'currency'         => 'required|in:SYP,USD,EU,AED',
-            'description'      => 'nullable|string',
-            'date'             => 'required|date'
+            'source' => 'required|string',
+            'category' => 'required|string',
+            'price' => 'required|numeric',
+            'currency'  => 'required|in:SYP,USD,EU,AED',
+            'description' => 'nullable|string',
+            'date' => 'required|date'
         ]);
 
         $type = $request->type_transaction;
-        $category = $request->category;
-
-        if ($type === 'income' && !in_array($category, $this->incomeCategories)) {
-        }
-
-        if ($type === 'expense' && !in_array($category, $this->expenseCategories)) {
-        }
-
-        $transactionData = $request->only([
-            'type_transaction', 'source', 'category', 'price', 'currency', 'description', 'date'
-        ]);
+        $categoryName = $request->category;
 
         $user = Auth::guard('user')->user();
         $company = Auth::guard('company')->user();
+
+
+        $category = \App\Models\Category::firstOrCreate(
+            [
+                'name' => $categoryName,
+                'type' => $type,
+                'user_id' => $user ? $user->id : null
+            ]
+        );
+
+        $transactionData = $request->only([
+            'type_transaction',
+            'source',
+            'price',
+            'currency',
+            'description',
+            'date'
+        ]);
+
+
+        $transactionData['category_id'] = $category->id;
+
+        $transactionData['category'] = $categoryName;
 
         if ($user) {
             $transactionData['user_id'] = $user->id;
@@ -63,10 +99,57 @@ class TransactionController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $transaction = Transaction::create($transactionData);
+        $transaction = \App\Models\Transaction::create($transactionData);
 
         return response()->json($transaction, 201);
     }
+
+
+    // public function store(Request $request)
+    // {
+    //     $request->validate([
+    //         'type_transaction' => 'required|in:income,expense',
+    //         'source'           => 'required|string',
+    //         'category'         => 'required|string',
+    //         'price'            => 'required|numeric',
+    //         'currency'         => 'required|in:SYP,USD,EU,AED',
+    //         'description'      => 'nullable|string',
+    //         'date'             => 'required|date'
+    //     ]);
+
+    //     $type = $request->type_transaction;
+    //     $categoryName = $request->category;
+
+    //     $user = Auth::guard('user')->user();
+    //     $company = Auth::guard('company')->user();
+
+    //     $category = Category::firstOrCreate(
+    //         ['name' => $categoryName, 'type' => $type, 'user_id' => $user ? $user->id : null]
+    //     );
+
+    //     $transactionData = $request->only([
+    //         'type_transaction',
+    //         'source',
+    //         'price',
+    //         'currency',
+    //         'description',
+    //         'date'
+    //     ]);
+
+    //     $transactionData['category_id'] = $category->id;
+
+    //     if ($user) {
+    //         $transactionData['user_id'] = $user->id;
+    //     } elseif ($company) {
+    //         $transactionData['company_id'] = $company->id;
+    //     } else {
+    //         return response()->json(['error' => 'Unauthorized'], 401);
+    //     }
+
+    //     $transaction = Transaction::create($transactionData);
+
+    //     return response()->json($transaction, 201);
+    // }
 
     public function show($id)
     {
@@ -114,7 +197,6 @@ class TransactionController extends Controller
         return response()->json(['error' => 'Unauthorized'], 401);
     }
 
-    // ✅ حذف معاملة
     public function destroy($id)
     {
         $transaction = Transaction::findOrFail($id);
@@ -131,5 +213,25 @@ class TransactionController extends Controller
         }
 
         return response()->json(['error' => 'Unauthorized'], 401);
+    }
+    public function getCategories()
+    {
+        $user = Auth::guard('user')->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $customIncomeCategories = Category::where('user_id', $user->id)
+            ->where('type', 'income')
+            ->pluck('name');
+
+        $customExpenseCategories = Category::where('user_id', $user->id)
+            ->where('type', 'expense')
+            ->pluck('name');
+
+        return response()->json([
+            'income_categories' => $customIncomeCategories,
+            'expense_categories' => $customExpenseCategories,
+        ]);
     }
 }
