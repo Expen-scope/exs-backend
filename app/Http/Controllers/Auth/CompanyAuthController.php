@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Str;
+use App\Models\Otp;
+use Illuminate\Support\Facades\Mail;
+use Carbon\Carbon;
 
 class CompanyAuthController extends Controller
 {
@@ -30,11 +33,22 @@ class CompanyAuthController extends Controller
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
+            'is_verified'  => false,
         ]);
-
+        $otpCode = rand(100000, 999999);
+        Otp::create([
+            'email' => $company->email,
+            'otp_code' => $otpCode,
+            'expires_at' => Carbon::now()->addMinutes(10)
+        ]);
+        Mail::raw("Your OTP code is: $otpCode", function ($message) use ($company) {
+            $message->to($company->email)
+                ->subject('Your OTP Code');
+        });
         $token = JWTAuth::fromUser($company);
 
         return response()->json([
+            'message' => 'User registered. OTP sent to email.',
             'company' => $company,
             'token'   => $token,
         ], 201);

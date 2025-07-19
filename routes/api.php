@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\ChatHistoryController;
 use App\Http\Controllers\Api\CompanyChatController;
 use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\OtpController;
 
 
 Route::prefix('user')->group(function () {
@@ -140,3 +141,6 @@ Route::middleware('auth:company')->group(function () {
 Route::middleware('auth:user,company')->group(function () {
     Route::get('/categories', [App\Http\Controllers\TransactionController::class, 'getCategories']);
 });
+
+Route::post('/send-otp', [OtpController::class, 'sendOtp']);
+Route::post('/verify-otp', [OtpController::class, 'verifyOtp']);

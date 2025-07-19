@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Str;
+use App\Models\Otp;
+use Illuminate\Support\Facades\Mail;
+use Carbon\Carbon;
+
 
 class UserAuthController extends Controller
 {
@@ -27,18 +31,58 @@ class UserAuthController extends Controller
         }
 
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
+            'name'         => $request->name,
+            'email'        => $request->email,
+            'password'     => Hash::make($request->password),
+            'is_verified'  => false,
         ]);
+
+        $otpCode = rand(100000, 999999);
+
+        Otp::create([
+            'email' => $user->email,
+            'otp_code' => $otpCode,
+            'expires_at' => Carbon::now()->addMinutes(10)
+        ]);
+
+        Mail::raw("Your OTP code is: $otpCode", function ($message) use ($user) {
+            $message->to($user->email)
+                ->subject('Your OTP Code');
+        });
 
         $token = JWTAuth::fromUser($user);
 
         return response()->json([
-            'user'  => $user,
-            'token' => $token,
+            'message' => 'User registered. OTP sent to email.',
+            'user'    => $user,
+            'token'   => $token,
         ], 201);
     }
+    // public function register(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'name'     => 'required|string|max:255',
+    //         'email'    => 'required|string|email|max:255|unique:users',
+    //         'password' => 'required|string|min:6|confirmed',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json($validator->errors(), 422);
+    //     }
+
+    //     $user = User::create([
+    //         'name'     => $request->name,
+    //         'email'    => $request->email,
+    //         'password' => Hash::make($request->password),
+    //     ]);
+
+    //     $token = JWTAuth::fromUser($user);
+
+    //     return response()->json([
+    //         'user'  => $user,
+    //         'token' => $token,
+    //     ], 201);
+    // }
 
     // public function login(Request $request)
     // {
