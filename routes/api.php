@@ -144,3 +144,10 @@ Route::middleware('auth:user,company')->group(function () {
 
 Route::post('/send-otp', [OtpController::class, 'sendOtp']);
 Route::post('/verify-otp', [OtpController::class, 'verifyOtp']);
+Route::post('user/forgot-password', [UserAuthController::class, 'forgotPassword']);
+Route::post('user/verify-otp-reset', [UserAuthController::class, 'verifyOtpForReset']);
+Route::post('user/reset-password', [UserAuthController::class, 'resetPassword']);
+
+Route::post('company/forgot-password', [CompanyAuthController::class, 'forgotPassword']);
+Route::post('company/verify-otp-reset', [CompanyAuthController::class, 'verifyOtpForReset']);
+Route::post('company/reset-password', [CompanyAuthController::class, 'resetPassword']);

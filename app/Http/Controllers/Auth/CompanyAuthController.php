@@ -170,4 +170,70 @@ class CompanyAuthController extends Controller
             'ai_api_key' => $company->ai_api_key
         ]);
     }
+    public function forgotPassword(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+        $user = Company::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $otpCode = rand(100000, 999999);
+
+        Otp::updateOrCreate(
+            ['email' => $user->email],
+            ['otp_code' => $otpCode, 'created_at' => now()]
+        );
+
+        Mail::raw("Your OTP code for password reset is: $otpCode", function ($message) use ($user) {
+            $message->to($user->email)
+                ->subject('Password Reset OTP');
+        });
+
+        return response()->json(['message' => 'OTP sent to your email']);
+    }
+
+    public function verifyOtpForReset(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp_code'   => 'required',
+        ]);
+
+        $otp = Otp::where('email', $request->email)
+            ->where('otp_code', $request->otp)
+            ->first();
+
+        if (!$otp) {
+            return response()->json(['error' => 'Invalid OTP'], 400);
+        }
+
+        return response()->json(['message' => 'OTP verified']);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email'        => 'required|email',
+            'otp_code'          => 'required',
+            'new_password' => 'required|min:6|confirmed',
+        ]);
+
+        $otp = Otp::where('email', $request->email)
+            ->where('otp_code', $request->otp)
+            ->first();
+
+        if (!$otp) {
+            return response()->json(['error' => 'Invalid OTP'], 400);
+        }
+
+        $user = Company::where('email', $request->email)->first();
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        $otp->delete();
+
+        return response()->json(['message' => 'Password reset successfully']);
+    }
 }
