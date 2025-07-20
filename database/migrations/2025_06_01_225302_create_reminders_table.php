@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('reminders', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('note');
+            $table->decimal('price', 10, 2)->default(0);
+            $table->decimal('collectedoprice', 10, 2)->default(0);
             $table->dateTime('time');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();

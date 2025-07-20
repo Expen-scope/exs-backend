@@ -10,11 +10,18 @@ class Reminder extends Model
     use HasFactory;
     protected $fillable = [
         "name",
-        "note",
+        "price",
+        "collectedoprice",
         "time",
         "user_id",
     ];
-    public function user(){
+    protected $casts = [
+        'time' => 'datetime',
+        'price' => 'float',
+        'collectedoprice' => 'float',
+    ];
+public function user()
+    {
         return $this->belongsTo(User::class);
     }
 }

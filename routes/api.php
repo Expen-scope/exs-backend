@@ -6,7 +6,7 @@ use App\Http\Controllers\Auth\CompanyAuthController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\TransactionController;
-use App\Http\Controllers\ReminderController;
+use App\Http\Controllers\api\ReminderController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\AdminActionController;
 use App\Http\Controllers\Api\ChatController;
@@ -46,15 +46,9 @@ Route::prefix('user')->group(function () {
             'destroy' => 'user.transactions.destroy',
         ]);
 
-        Route::apiResource('reminders', ReminderController::class)->names([
-            'index'   => 'user.reminders.index',
-            'create'  => 'user.reminders.create',
-            'store'   => 'user.reminders.store',
-            'show'    => 'user.reminders.show',
-            'edit'    => 'user.reminders.edit',
-            'update'  => 'user.reminders.update',
-            'destroy' => 'user.reminders.destroy',
-        ]);
+
+        Route::apiResource('reminders', ReminderController::class);
+
 
         Route::get('/financialuser', [UserAuthController::class, 'financialuser'])->name('user.financialuser');
     });
