@@ -20,7 +20,7 @@ class Reminder extends Model
         'price' => 'float',
         'collectedoprice' => 'float',
     ];
-public function user()
+    public function user()
     {
         return $this->belongsTo(User::class);
     }

@@ -76,7 +76,6 @@ class ChatController extends Controller
             'userId'         => $entity->id,
             'userType'       => $entity instanceof User ? 'user' : 'company',
             'geminiApiKey'   => $entity->gemini_api_key,
-            // 'geminiApiKey' => 'AI***DcKl4Q',
 
             'financialData'  => $financialData,
             'chatHistory'    => $chatHistory,
@@ -85,33 +84,41 @@ class ChatController extends Controller
 
 
 
-    private function getFinancialDataFor($entity)
-    {
+private function getFinancialDataFor($entity)
+{
+    $totalIncome = $entity->transactions()
+        ->where('type_transaction', 'income')
+        ->where('created_at', '>=', now()->subDays(30))
+        ->sum('price');
 
-        $totalIncome = $entity->transactions()
-            ->where('type_transaction', 'income')
-            ->where('created_at', '>=', now()->subDays(30))
-            ->sum('price');
+    $totalExpenses = $entity->transactions()
+        ->where('type_transaction', 'expense')
+        ->where('created_at', '>=', now()->subDays(30))
+        ->sum('price');
 
-        $totalExpenses = $entity->transactions()
-            ->where('type_transaction', 'expense')
-            ->where('created_at', '>=', now()->subDays(30))
-            ->sum('price');
+    $recentTransactions = $entity->transactions()
+        ->orderBy('created_at', 'desc')
+        ->limit(10)
+        ->get()
+        ->map(function ($transaction) {
+            return [
+                'source' => $transaction->source,
+                'type' => $transaction->type_transaction,
+                'price' => $transaction->price,
+                'category' => $transaction->category,
+                'date' => $transaction->created_at->toDateString(),
+            ];
+        });
 
-        $recentTransactions = $entity->transactions()
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(function ($transaction) {
-                return [
-                    'source' => $transaction->source,
-                    'type' => $transaction->type_transaction,
-                    'price' => $transaction->price,
-                    'category' => $transaction->category,
-                    'date' => $transaction->created_at->toDateString(),
-                ];
-            });
+    // --- Initialize all possible data arrays ---
+    $activeGoals = [];
+    $employees = [];
+    $warehouses = [];
+    $events = [];
 
+    // --- CHECK THE ENTITY TYPE BEFORE CALLING RELATIONSHIPS ---
+    if ($entity instanceof \App\Models\User) {
+        // If it's a User, ONLY get user-specific data (goals)
         $activeGoals = $entity->goals()
             ->limit(5)
             ->get()
@@ -124,15 +131,43 @@ class ChatController extends Controller
                 ];
             });
 
-        return [
-            'financial_summary' => [
-                'period' => 'Last 30 days',
-                'total_income' => (float) $totalIncome,
-                'total_expenses' => (float) $totalExpenses,
-                'net_saving' => (float) ($totalIncome - $totalExpenses),
-            ],
-            'recent_transactions' => $recentTransactions,
-            'active_goals' => $activeGoals,
-        ];
+    } elseif ($entity instanceof \App\Models\Company) {
+        // If it's a Company, ONLY get company-specific data
+        $employees = $entity->employees()
+            ->limit(20)
+            ->get()
+            ->map(function ($employee) {
+                return ['name' => $employee->name, 'position' => $employee->position, 'monthly_salary' => $employee->monthly_salary];
+            });
+
+        $warehouses = $entity->warehouses()
+            ->limit(20)
+            ->get()
+            ->map(function ($warehouse) {
+                return ['name' => $warehouse->name, 'category' => $warehouse->category, 'quantity' => $warehouse->quantity, 'status' => $warehouse->status, 'location' => $warehouse->location];
+            });
+
+        $events = $entity->events()
+            ->limit(20)
+            ->get()
+            ->map(function ($event) {
+                return ['name' => $event->name, 'description' => $event->description, 'scheduled_date' => $event->scheduled_date, 'status' => $event->status];
+            });
     }
+
+    // --- Return everything together. The arrays will be either empty or filled based on the logic above. ---
+    return [
+        'financial_summary' => [
+            'period' => 'Last 30 days',
+            'total_income' => (float) $totalIncome,
+            'total_expenses' => (float) $totalExpenses,
+            'net_saving' => (float) ($totalIncome - $totalExpenses),
+        ],
+        'recent_transactions' => $recentTransactions,
+        'active_goals' => $activeGoals,
+        'employees' => $employees,
+        'warehouses' => $warehouses,
+        'events' => $events,
+    ];
+}
 }
